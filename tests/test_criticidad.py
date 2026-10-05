@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.llm import ErrorDelModelo, obtener_llm
 from app.main import crear_app
+from tests.conftest import TOKEN
 
 
 class LlmFalso:
@@ -20,7 +21,7 @@ class LlmFalso:
 def cliente_con(llm):
     app = crear_app()
     app.dependency_overrides[obtener_llm] = lambda: llm
-    return TestClient(app)
+    return TestClient(app, headers={"X-Huecko-Token": TOKEN})
 
 
 PETICION = {

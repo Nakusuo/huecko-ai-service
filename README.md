@@ -30,6 +30,7 @@ docker compose --profile ia up -d
 | Variable | Para qué |
 |---|---|
 | `GEMINI_API_KEY` | Clave gratuita de Google AI Studio. Nunca se sube al repo. |
+| `HUECKO_IA_TOKEN` | Secreto compartido con el backend; `/v1` exige la cabecera `X-Huecko-Token`. Sin él, `/v1` responde 503. |
 | `GEMINI_MODELO` | Modelo de Gemini. Por defecto `gemini-flash-latest`. |
 | `GEMINI_TIEMPO_MAXIMO` | Segundos de espera a Gemini. Por defecto `2.5`. |
 

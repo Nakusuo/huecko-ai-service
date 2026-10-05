@@ -10,8 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ValidationError, field_validator
 
 from app.llm import ErrorDelModelo, Gemini, obtener_llm
+from app.token import exigir_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(exigir_token)])
 
 TAMANO_CACHE = 512
 
