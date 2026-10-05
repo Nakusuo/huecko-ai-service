@@ -7,11 +7,15 @@ import os
 
 from fastapi import FastAPI
 
+from app import criticidad
+
 VERSION = "0.1.0"
 
 
 def crear_app() -> FastAPI:
     app = FastAPI(title="Huecko IA", version=VERSION)
+    app.state.cache_criticidad = {}
+    app.include_router(criticidad.router)
 
     @app.get("/salud")
     def salud() -> dict:
