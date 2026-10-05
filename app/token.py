@@ -1,0 +1,18 @@
+"""Solo el backend de Huecko puede usar /v1: cada llamada gasta cuota de Gemini.
+
+Comparten un secreto, `HUECKO_IA_TOKEN`. Si el servicio no lo tiene, no
+atiende a nadie: es mejor que el backend caiga a sus reglas que dejar la
+cuota abierta a quien encuentre el puerto.
+"""
+import os
+import secrets
+
+from fastapi import Header, HTTPException
+
+
+def exigir_token(x_huecko_token: str | None = Header(default=None)) -> None:
+    esperado = os.getenv("HUECKO_IA_TOKEN")
+    if not esperado:
+        raise HTTPException(503, "El servicio no tiene HUECKO_IA_TOKEN configurado")
+    if not x_huecko_token or not secrets.compare_digest(x_huecko_token, esperado):
+        raise HTTPException(401, "Token inválido")
