@@ -11,8 +11,8 @@ class LlmFalso:
         self.error = error
         self.llamadas = []
 
-    def generar_json(self, prompt, esquema):
-        self.llamadas.append(prompt)
+    def generar_json(self, instrucciones, datos, esquema):
+        self.llamadas.append((instrucciones, datos))
         if self.error:
             raise self.error
         return self.respuesta
@@ -39,7 +39,7 @@ def test_devuelve_el_veredicto_del_modelo():
 
     assert respuesta.status_code == 200
     assert respuesta.json() == {"criticidad": "CRITICA", "razon": "tiene las entradas de todo el grupo"}
-    assert "Me enfermé y yo tengo las entradas de todos" in llm.llamadas[0]
+    assert llm.llamadas[0][1]["motivo"] == "Me enfermé y yo tengo las entradas de todos"
 
 
 def test_la_misma_peticion_no_vuelve_a_llamar_al_modelo():

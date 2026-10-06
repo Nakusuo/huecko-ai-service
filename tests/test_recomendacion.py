@@ -30,7 +30,8 @@ def test_recomienda_una_opcion_con_su_razon():
 
     assert respuesta.status_code == 200
     assert respuesta.json() == {"opcion": "REAGENDAR", "razon": "sin las entradas no se puede entrar al concierto"}
-    assert "2.5" in llm.llamadas[0] and "Me enfermé" in llm.llamadas[0]
+    datos = llm.llamadas[0][1]
+    assert datos["horasHastaElPlan"] == 2.5 and datos["motivo"].startswith("Me enfermé")
 
 
 def test_acepta_un_aviso_sin_motivo_ni_fecha():
