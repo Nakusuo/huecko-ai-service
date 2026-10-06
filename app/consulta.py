@@ -1,4 +1,5 @@
 """Lo común a todo endpoint que pregunta al modelo: caché, llamada y validación."""
+import re
 from typing import TypeVar
 
 from fastapi import HTTPException, Request
@@ -11,7 +12,7 @@ TAMANO_CACHE = 512
 R = TypeVar("R", bound=BaseModel)
 
 
-def consultar(request: Request, llm: Gemini, peticion: BaseModel, prompt: str,
+def consultar(request: Request, llm: Gemini, peticion: BaseModel, instrucciones: str,
               esquema: dict, tipo: type[R]) -> R:
     """Pregunta al modelo y valida la respuesta contra `tipo`.
 
@@ -24,7 +25,7 @@ def consultar(request: Request, llm: Gemini, peticion: BaseModel, prompt: str,
         return cache[clave]
 
     try:
-        resultado = tipo.model_validate(llm.generar_json(prompt, esquema))
+        resultado = tipo.model_validate(llm.generar_json(instrucciones, peticion.model_dump(), esquema))
     except ErrorDelModelo as ex:
         raise HTTPException(503 if ex.sin_clave else 502, str(ex)) from ex
     except ValidationError as ex:
@@ -36,9 +37,20 @@ def consultar(request: Request, llm: Gemini, peticion: BaseModel, prompt: str,
     return resultado
 
 
+ENLACE = re.compile(r"https?://|www\.|\w+\.(com|net|org|pe|io|app|example)\b", re.IGNORECASE)
+
+
 def razon_legible(valor: str) -> str:
-    """La razón se muestra tal cual al grupo: ni vacía ni de tres letras."""
+    """La razón se muestra tal cual al grupo: ni vacía, ni un párrafo, ni enlaces.
+
+    Si un usuario logra torcer al modelo, lo peor que llega al grupo es una
+    frase corta sin enlaces, dentro de un recuadro marcado como de la IA.
+    """
     valor = valor.strip()
     if len(valor) <= 8:
         raise ValueError("Razón demasiado corta")
+    if len(valor) > 200:
+        raise ValueError("Razón demasiado larga")
+    if ENLACE.search(valor):
+        raise ValueError("La razón no puede llevar enlaces")
     return valor
