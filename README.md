@@ -40,3 +40,4 @@ docker compose --profile ia up -d
 |---|---|
 | `GET /salud` | Estado y si hay clave de Gemini. |
 | `POST /v1/criticidad` | RF-16: lee el motivo de una ausencia y dice si es crítica. 503 sin clave, 502 si Gemini falla. |
+| `POST /v1/votacion-expres/recomendacion` | Sugiere CANCELAR, REAGENDAR o MANTENER con la razón. Se calcula con los hechos del aviso, no con los votos. |

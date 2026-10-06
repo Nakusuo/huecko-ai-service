@@ -6,15 +6,14 @@ reglas sin llegar aquí. Lo que aporta el modelo es leer el motivo.
 """
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ValidationError, field_validator
+from fastapi import APIRouter, Depends, Request
+from pydantic import BaseModel, field_validator
 
-from app.llm import ErrorDelModelo, Gemini, obtener_llm
+from app.consulta import consultar, razon_legible
+from app.llm import Gemini, obtener_llm
 from app.token import exigir_token
 
 router = APIRouter(dependencies=[Depends(exigir_token)])
-
-TAMANO_CACHE = 512
 
 ESQUEMA = {
     "type": "OBJECT",
@@ -67,32 +66,11 @@ class Veredicto(BaseModel):
     criticidad: Literal["CRITICA", "NO_CRITICA"]
     razon: str
 
-    @field_validator("razon")
-    @classmethod
-    def razon_legible(cls, valor: str) -> str:
-        valor = valor.strip()
-        if len(valor) <= 8:
-            raise ValueError("Razón demasiado corta")
-        return valor
+    _razon = field_validator("razon")(razon_legible)
 
 
 @router.post("/v1/criticidad", response_model=Veredicto)
 def evaluar(peticion: PeticionCriticidad, request: Request, llm: Gemini = Depends(obtener_llm)):
-    cache: dict = request.app.state.cache_criticidad
-    clave = peticion.model_dump_json()
-    if clave in cache:
-        return cache[clave]
-
     prompt = PROMPT.format(titulo=peticion.titulo, lugar=peticion.lugar or "sin indicar",
                            rol=peticion.rol, motivo=peticion.motivo)
-    try:
-        veredicto = Veredicto.model_validate(llm.generar_json(prompt, ESQUEMA))
-    except ErrorDelModelo as ex:
-        raise HTTPException(503 if ex.sin_clave else 502, str(ex)) from ex
-    except ValidationError as ex:
-        raise HTTPException(502, "El modelo devolvió un veredicto ilegible") from ex
-
-    if len(cache) >= TAMANO_CACHE:
-        cache.pop(next(iter(cache)))
-    cache[clave] = veredicto
-    return veredicto
+    return consultar(request, llm, peticion, prompt, ESQUEMA, Veredicto)
