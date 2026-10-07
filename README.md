@@ -33,6 +33,8 @@ docker compose --profile ia up -d
 | `HUECKO_IA_TOKEN` | Secreto compartido con el backend; `/v1` exige la cabecera `X-Huecko-Token`. Sin él, `/v1` responde 503. |
 | `GEMINI_MODELO` | Modelo de Gemini. Por defecto `gemini-flash-latest`. |
 | `GEMINI_TIEMPO_MAXIMO` | Segundos de espera a Gemini. Por defecto `2.5`. |
+| `HUECKO_IA_DOCS` | `true` abre `/docs` y `/openapi.json`. Cerrados por defecto, porque desplegado el servicio está en internet. |
+| `PORT` | Puerto en el que escucha la imagen Docker. Por defecto `8000`; Render pone el suyo. |
 
 ## Endpoints
 
