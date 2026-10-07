@@ -8,7 +8,7 @@ def test_salud_responde_ok_y_dice_si_hay_clave_de_gemini(monkeypatch):
     respuesta = TestClient(crear_app()).get("/salud")
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == {"estado": "ok", "version": "0.1.0", "gemini": False}
+    assert respuesta.json() == {"estado": "ok", "version": "0.5.0", "gemini": False}
 
 
 def test_salud_detecta_la_clave_sin_mostrarla(monkeypatch):
