@@ -17,3 +17,19 @@ def test_salud_detecta_la_clave_sin_mostrarla(monkeypatch):
 
     assert cuerpo["gemini"] is True
     assert "secreta" not in str(cuerpo)
+
+
+def test_la_documentacion_de_la_api_esta_cerrada_por_defecto(monkeypatch):
+    monkeypatch.delenv("HUECKO_IA_DOCS", raising=False)
+    cliente = TestClient(crear_app())
+
+    assert cliente.get("/docs").status_code == 404
+    assert cliente.get("/openapi.json").status_code == 404
+
+
+def test_la_documentacion_se_abre_con_huecko_ia_docs(monkeypatch):
+    monkeypatch.setenv("HUECKO_IA_DOCS", "true")
+    cliente = TestClient(crear_app())
+
+    assert cliente.get("/docs").status_code == 200
+    assert cliente.get("/openapi.json").status_code == 200
