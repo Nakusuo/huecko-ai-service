@@ -9,7 +9,7 @@ from fastapi import FastAPI
 
 from app import criticidad, recomendacion
 
-VERSION = "0.1.0"
+VERSION = "0.5.0"
 
 
 def crear_app() -> FastAPI:
