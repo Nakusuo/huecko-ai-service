@@ -29,3 +29,10 @@ def test_si_el_servicio_no_tiene_token_no_atiende_a_nadie(monkeypatch):
 
 def test_salud_no_pide_token():
     assert TestClient(crear_app()).get("/salud").status_code == 200
+
+
+def test_token_con_caracteres_no_ascii_rechaza_con_401_y_no_revienta():
+    respuesta = TestClient(crear_app()).post(
+        "/v1/criticidad", json=PETICION, headers={"X-Huecko-Token": "tók".encode("utf-8")})
+
+    assert respuesta.status_code == 401

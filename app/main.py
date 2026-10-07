@@ -13,7 +13,16 @@ VERSION = "0.1.0"
 
 
 def crear_app() -> FastAPI:
-    app = FastAPI(title="Huecko IA", version=VERSION)
+    # /docs y /openapi.json describen la API a cualquiera: desplegado, el
+    # servicio está en internet, así que solo se abren con HUECKO_IA_DOCS=true.
+    docs = os.getenv("HUECKO_IA_DOCS", "").lower() == "true"
+    app = FastAPI(
+        title="Huecko IA",
+        version=VERSION,
+        docs_url="/docs" if docs else None,
+        redoc_url="/redoc" if docs else None,
+        openapi_url="/openapi.json" if docs else None,
+    )
     app.state.cache = {}
     app.include_router(criticidad.router)
     app.include_router(recomendacion.router)

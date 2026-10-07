@@ -14,5 +14,8 @@ def exigir_token(x_huecko_token: str | None = Header(default=None)) -> None:
     esperado = os.getenv("HUECKO_IA_TOKEN")
     if not esperado:
         raise HTTPException(503, "El servicio no tiene HUECKO_IA_TOKEN configurado")
-    if not x_huecko_token or not secrets.compare_digest(x_huecko_token, esperado):
+    # En bytes: con `str`, compare_digest lanza TypeError si la cabecera trae
+    # algo que no sea ASCII, y eso acababa en un 500 en vez de un 401.
+    if not x_huecko_token or not secrets.compare_digest(
+            x_huecko_token.encode(), esperado.encode()):
         raise HTTPException(401, "Token inválido")
