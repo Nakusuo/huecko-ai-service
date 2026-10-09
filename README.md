@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="https://github.com/Nakusuo"><img src="https://raw.githubusercontent.com/Nakusuo/Nakusuo/main/assets/covers/huecko-ai-service.svg" width="100%" alt="huecko-ai-service — Nakusu"/></a>
+</p>
+
 # huecko-ai-service
 
 Servicio de IA de Huecko: predicciones de horarios y tiempos, y ayuda para
