@@ -7,8 +7,10 @@
 Servicio de IA de Huecko: predicciones de horarios y tiempos, y ayuda para
 decidir en las votaciones. El plan completo está en [docs/plan.md](docs/plan.md).
 
-No guarda datos. El backend le manda lo que necesita y, si el servicio falla o
-tarda, sigue con sus reglas.
+No guarda nada en disco ni en base de datos: el backend le manda lo que
+necesita, y solo se recuerdan en memoria las últimas respuestas para no
+repetir llamadas a Gemini. Si el servicio falla o tarda, el backend sigue con
+sus reglas.
 
 ## Correr en local
 

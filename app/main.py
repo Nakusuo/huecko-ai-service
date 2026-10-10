@@ -1,15 +1,17 @@
 """Servicio de IA de Huecko.
 
-No guarda datos: el backend le manda lo que necesita en cada petición y se
-queda con el resultado. Si este servicio cae, el backend sigue con sus reglas.
+No guarda nada en disco ni en base de datos: el backend le manda lo que
+necesita en cada petición. Solo recuerda en memoria las últimas respuestas
+(con sus datos) para no repetir llamadas a Gemini; se pierden al reiniciar. Si este servicio cae, el backend sigue con sus reglas.
 """
 import os
 
 from fastapi import FastAPI
 
 from app import criticidad, recomendacion
+from app.limite import LimiteDeCuerpo
 
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 
 
 def crear_app() -> FastAPI:
@@ -24,6 +26,7 @@ def crear_app() -> FastAPI:
         openapi_url="/openapi.json" if docs else None,
     )
     app.state.cache = {}
+    app.add_middleware(LimiteDeCuerpo)
     app.include_router(criticidad.router)
     app.include_router(recomendacion.router)
 
