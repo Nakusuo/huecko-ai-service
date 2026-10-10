@@ -7,7 +7,7 @@ reglas sin llegar aquí. Lo que aporta el modelo es leer el motivo.
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.consulta import consultar, razon_legible
 from app.llm import Gemini, obtener_llm
@@ -48,10 +48,12 @@ juzga solo la ausencia.
 
 
 class PeticionCriticidad(BaseModel):
-    titulo: str
-    lugar: str | None = None
+    # Algo por encima de lo que acepta el backend (título 120, lugar 200,
+    # motivo 300): solo frena lo que no viene de él.
+    titulo: str = Field(max_length=200)
+    lugar: str | None = Field(default=None, max_length=300)
     rol: Literal["ORGANIZADOR", "MIEMBRO"]
-    motivo: str
+    motivo: str = Field(max_length=2000)
 
     @field_validator("motivo")
     @classmethod
