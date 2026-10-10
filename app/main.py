@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from app import criticidad, recomendacion
 from app.limite import LimiteDeCuerpo
 
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 
 
 def crear_app() -> FastAPI:
