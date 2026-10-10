@@ -1,5 +1,6 @@
 """Lo común a todo endpoint que pregunta al modelo: caché, llamada y validación."""
 import re
+import threading
 from typing import TypeVar
 
 from fastapi import HTTPException, Request
@@ -8,6 +9,7 @@ from pydantic import BaseModel, ValidationError
 from app.llm import ErrorDelModelo, Gemini
 
 TAMANO_CACHE = 512
+_CERROJO = threading.Lock()
 
 R = TypeVar("R", bound=BaseModel)
 
@@ -21,8 +23,9 @@ def consultar(request: Request, llm: Gemini, peticion: BaseModel, instrucciones:
     """
     cache: dict = request.app.state.cache
     clave = (request.url.path, peticion.model_dump_json())
-    if clave in cache:
-        return cache[clave]
+    with _CERROJO:
+        if clave in cache:
+            return cache[clave]
 
     try:
         resultado = tipo.model_validate(llm.generar_json(instrucciones, peticion.model_dump(), esquema))
@@ -31,9 +34,12 @@ def consultar(request: Request, llm: Gemini, peticion: BaseModel, instrucciones:
     except ValidationError as ex:
         raise HTTPException(502, "El modelo devolvió una respuesta ilegible") from ex
 
-    if len(cache) >= TAMANO_CACHE:
-        cache.pop(next(iter(cache)))
-    cache[clave] = resultado
+    # Las rutas síncronas corren en un pool de hilos: sin cerrojo, dos a la
+    # vez podían sacar la misma entrada y el `pop` fallaba.
+    with _CERROJO:
+        while len(cache) >= TAMANO_CACHE:
+            cache.pop(next(iter(cache)), None)
+        cache[clave] = resultado
     return resultado
 
 
