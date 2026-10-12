@@ -18,9 +18,10 @@ sus reglas.
 py -3.12 -m venv .venv
 .venv/Scripts/python -m pip install -r requirements-dev.txt
 .venv/Scripts/python -m pytest
-.venv/Scripts/python -m uvicorn app.main:app --reload --port 8000
+.venv/Scripts/python -m uvicorn app.main:app --reload --port 8000 --env-file .env
 ```
 
+Copia `.env.example` como `.env` y pon tu clave (`.env` no se sube).
 `GET http://localhost:8000/salud` debe responder `{"estado": "ok", ...}`.
 
 ## Con Docker, junto al backend
@@ -37,8 +38,8 @@ docker compose --profile ia up -d
 |---|---|
 | `GEMINI_API_KEY` | Clave gratuita de Google AI Studio. Nunca se sube al repo. |
 | `HUECKO_IA_TOKEN` | Secreto compartido con el backend; `/v1` exige la cabecera `X-Huecko-Token`. Sin él, `/v1` responde 503. |
-| `GEMINI_MODELO` | Modelo de Gemini. Por defecto `gemini-flash-latest`. |
-| `GEMINI_TIEMPO_MAXIMO` | Segundos de espera a Gemini. Por defecto `2.5`. |
+| `GEMINI_MODELO` | Modelo de Gemini. Por defecto `gemini-3.5-flash-lite` (~1,5 s). Mejor una versión fija: los alias `-latest` cambian solos y los modelos que razonan tardan más que `GEMINI_TIEMPO_MAXIMO`. |
+| `GEMINI_TIEMPO_MAXIMO` | Segundos de espera a Gemini. Por defecto `3`; el backend debe esperar más (`HUECKO_IA_TIEMPO_MAXIMO_MS`, 3500). |
 | `HUECKO_IA_DOCS` | `true` abre `/docs` y `/openapi.json`. Cerrados por defecto, porque desplegado el servicio está en internet. |
 | `PORT` | Puerto en el que escucha la imagen Docker. Por defecto `8000`; Render pone el suyo. |
 
@@ -46,6 +47,6 @@ docker compose --profile ia up -d
 
 | Ruta | Qué hace |
 |---|---|
-| `GET /salud` | Estado y si hay clave de Gemini. |
+| `GET /salud` | Estado y si hay clave de Gemini. Con `X-Huecko-Token`, también si el token coincide (`"token": true/false`). |
 | `POST /v1/criticidad` | RF-16: lee el motivo de una ausencia y dice si es crítica. 503 sin clave, 502 si Gemini falla. |
 | `POST /v1/votacion-expres/recomendacion` | Sugiere CANCELAR, REAGENDAR o MANTENER con la razón. Se calcula con los hechos del aviso, no con los votos. |
