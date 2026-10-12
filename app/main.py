@@ -8,7 +8,7 @@ import os
 
 from fastapi import FastAPI, Header
 
-from app import criticidad, recomendacion
+from app import criticidad, duracion, reagendar, recomendacion, retrasos, ventanas
 from app.limite import LimiteDeCuerpo
 from app.token import token_valido
 
@@ -30,6 +30,10 @@ def crear_app() -> FastAPI:
     app.add_middleware(LimiteDeCuerpo)
     app.include_router(criticidad.router)
     app.include_router(recomendacion.router)
+    app.include_router(reagendar.router)
+    app.include_router(retrasos.router)
+    app.include_router(ventanas.router)
+    app.include_router(duracion.router)
 
     @app.get("/salud")
     def salud(x_huecko_token: str | None = Header(default=None)) -> dict:
