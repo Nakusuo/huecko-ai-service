@@ -36,6 +36,13 @@ Votación:
 | POST | `/v1/votacion/prediccion-cierre` | Predecir el quórum |
 | POST | `/v1/planes/duracion` | Estimar la duración |
 
+## Estado (2026-10-11)
+
+Fases 1–7 implementadas en el servicio. Solo criticidad, recomendación y
+duración usan Gemini; reagendar, retrasos, ranking y cierre son estadística
+pura (sin cuota, sin latencia de red). Ver los pesos en `app/ventanas.py`,
+`app/retrasos.py` y `app/reagendar.py`.
+
 ## Fases (una rama corta por fase)
 
 0. **Preparar**: llevar las copias locales del backend y del frontend a `origin/develop` y traer el parche de «volver a proponer fechas».

@@ -50,3 +50,8 @@ docker compose --profile ia up -d
 | `GET /salud` | Estado y si hay clave de Gemini. Con `X-Huecko-Token`, también si el token coincide (`"token": true/false`). |
 | `POST /v1/criticidad` | RF-16: lee el motivo de una ausencia y dice si es crítica. 503 sin clave, 502 si Gemini falla. |
 | `POST /v1/votacion-expres/recomendacion` | Sugiere CANCELAR, REAGENDAR o MANTENER con la razón. Se calcula con los hechos del aviso, no con los votos. |
+| `POST /v1/reagendar/sugerencias` | Fase 4: elige 2–5 fechas nuevas entre las franjas libres del grupo (una por día, cerca de la hora original). Estadística, sin Gemini. |
+| `POST /v1/retrasos/prediccion` | Fase 5: probabilidad de que cada miembro llegue tarde y minutos típicos, con un supuesto previo de 1 de cada 4. Sin Gemini. |
+| `POST /v1/ventanas/ranking` | Fase 6: ordena las ventanas de un plan por asistencia esperada (votos + disponibilidad). Sin Gemini. |
+| `POST /v1/votacion/prediccion-cierre` | Fase 6: probabilidad de que vote la mayoría antes del plazo (binomial con la participación histórica). Sin Gemini. |
+| `POST /v1/planes/duracion` | Fase 7: estima la duración de un plan por su título y los planes anteriores del grupo. Con Gemini; 503/502 como criticidad. |
