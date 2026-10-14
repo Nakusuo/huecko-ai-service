@@ -21,7 +21,7 @@ Votación:
 - **Modelo de lenguaje**: Gemini con plan gratuito (cumple RNF-09). La clave va en la variable `GEMINI_API_KEY` y nunca se sube al repo.
 - **Sin estado**: el servicio no toca la base de datos. El backend le manda los datos que necesita y guarda los resultados. Así los datos tienen un solo dueño.
 - **Estadística primero**: retrasos, cierre, ranking y sugerencias de fechas se calculan con estadística sencilla. El modelo de lenguaje se usa solo donde hay texto que interpretar (criticidad, recomendación, duración) y para redactar las razones.
-- **Siempre hay respuesta**: el backend llama con un tiempo límite de 2 s. Si la IA falla o tarda, usa las reglas y marca `REGLAS_POR_FALLO`, como pide el contrato de RF-16.
+- **Siempre hay respuesta**: el servicio espera a Gemini 3 s y el backend al servicio 3,5 s. Si la IA falla o tarda, usa las reglas y marca `REGLAS_POR_FALLO`, como pide el contrato de RF-16.
 
 ## Contrato HTTP (v1)
 

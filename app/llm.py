@@ -53,13 +53,19 @@ class Gemini:
             texto = respuesta.json()["candidates"][0]["content"]["parts"][0]["text"]
             return json.loads(texto)
         except (httpx.HTTPError, KeyError, IndexError, ValueError) as ex:
-            # Nunca se incluye la clave: el mensaje acaba en los logs.
-            raise ErrorDelModelo(f"Gemini no respondió bien: {type(ex).__name__}") from ex
+            # Nunca se incluye la clave: el mensaje acaba en los logs. El código
+            # sí, porque 429 (cuota) y 503 (saturado) se arreglan distinto.
+            detalle = type(ex).__name__
+            if isinstance(ex, httpx.HTTPStatusError):
+                detalle += f" {ex.response.status_code}"
+            raise ErrorDelModelo(f"Gemini no respondió bien: {detalle}") from ex
 
 
 def obtener_llm() -> Gemini:
     return Gemini(
         clave=os.getenv("GEMINI_API_KEY"),
-        modelo=os.getenv("GEMINI_MODELO", "gemini-flash-latest"),
-        tiempo_maximo=float(os.getenv("GEMINI_TIEMPO_MAXIMO", "2.5")),
+        # Versión fija y ligera: los alias `-latest` cambian de modelo sin
+        # aviso, y los que razonan tardan más que el tiempo máximo.
+        modelo=os.getenv("GEMINI_MODELO", "gemini-3.5-flash-lite"),
+        tiempo_maximo=float(os.getenv("GEMINI_TIEMPO_MAXIMO", "3")),
     )

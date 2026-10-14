@@ -39,3 +39,20 @@ def test_un_error_de_gemini_no_expone_la_clave(monkeypatch):
         Gemini("super-secreta", "m", 1).generar_json("reglas", {}, {})
     assert "super-secreta" not in str(ex.value)
     assert not ex.value.sin_clave
+
+
+def test_el_error_dice_el_codigo_de_gemini_para_distinguir_cuota_de_caida(monkeypatch):
+    monkeypatch.setattr(httpx, "post", lambda *a, **k: respuesta(429, {"error": "cuota"}))
+
+    with pytest.raises(ErrorDelModelo) as ex:
+        Gemini("clave", "m", 1).generar_json("reglas", {}, {})
+    assert "429" in str(ex.value)
+
+
+def test_el_modelo_por_defecto_es_una_version_fija(monkeypatch):
+    # Un alias `-latest` cambia de modelo sin aviso: gemini-flash-latest pasó a
+    # uno con razonamiento que tarda ~5 s y todas las llamadas agotaban el tiempo.
+    monkeypatch.delenv("GEMINI_MODELO", raising=False)
+    from app.llm import obtener_llm
+
+    assert "latest" not in obtener_llm().modelo
