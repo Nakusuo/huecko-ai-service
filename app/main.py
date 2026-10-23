@@ -8,7 +8,7 @@ import os
 
 from fastapi import FastAPI
 
-from app import criticidad, recomendacion
+from app import criticidad, horario, recomendacion
 from app.limite import LimiteDeCuerpo
 
 VERSION = "0.6.0"
@@ -26,9 +26,10 @@ def crear_app() -> FastAPI:
         openapi_url="/openapi.json" if docs else None,
     )
     app.state.cache = {}
-    app.add_middleware(LimiteDeCuerpo)
+    app.add_middleware(LimiteDeCuerpo, por_ruta={horario.RUTA: horario.MAX_CUERPO})
     app.include_router(criticidad.router)
     app.include_router(recomendacion.router)
+    app.include_router(horario.router)
 
     @app.get("/salud")
     def salud() -> dict:

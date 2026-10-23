@@ -39,6 +39,7 @@ docker compose --profile ia up -d
 | `HUECKO_IA_TOKEN` | Secreto compartido con el backend; `/v1` exige la cabecera `X-Huecko-Token`. Sin él, `/v1` responde 503. |
 | `GEMINI_MODELO` | Modelo de Gemini. Por defecto `gemini-flash-latest`. |
 | `GEMINI_TIEMPO_MAXIMO` | Segundos de espera a Gemini. Por defecto `2.5`. |
+| `GEMINI_TIEMPO_MAXIMO_IMAGEN` | Segundos de espera al leer una foto. Por defecto `25`. |
 | `HUECKO_IA_DOCS` | `true` abre `/docs` y `/openapi.json`. Cerrados por defecto, porque desplegado el servicio está en internet. |
 | `PORT` | Puerto en el que escucha la imagen Docker. Por defecto `8000`; Render pone el suyo. |
 
@@ -49,3 +50,4 @@ docker compose --profile ia up -d
 | `GET /salud` | Estado y si hay clave de Gemini. |
 | `POST /v1/criticidad` | RF-16: lee el motivo de una ausencia y dice si es crítica. 503 sin clave, 502 si Gemini falla. |
 | `POST /v1/votacion-expres/recomendacion` | Sugiere CANCELAR, REAGENDAR o MANTENER con la razón. Se calcula con los hechos del aviso, no con los votos. |
+| `POST /v1/horario/escaneo` | Lee una foto de horario (`{tipo, imagen}` en base64, JPG/PNG/WEBP, 5 MB) y devuelve bloques semanales `{diaSemana, horaInicio, horaFin, titulo, dudoso}`. Descarta los bloques sin sentido; una foto que no es un horario da `{"bloques": []}`. Es la única ruta que acepta más de 16 KB, y solo con el token correcto. |

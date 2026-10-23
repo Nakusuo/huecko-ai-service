@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from app.llm import ErrorDelModelo, Gemini
+from app.llm import ErrorDelModelo, Gemini, Imagen
 
 
 def respuesta(codigo, cuerpo):
@@ -39,3 +39,18 @@ def test_un_error_de_gemini_no_expone_la_clave(monkeypatch):
         Gemini("super-secreta", "m", 1).generar_json("reglas", {}, {})
     assert "super-secreta" not in str(ex.value)
     assert not ex.value.sin_clave
+
+
+def test_una_imagen_va_como_parte_aparte_sin_texto_de_datos(monkeypatch):
+    enviado = {}
+
+    def post(url, headers, json, timeout):
+        enviado.update(json)
+        return respuesta(200, {"candidates": [{"content": {"parts": [{"text": '{"bloques": []}'}]}}]})
+
+    monkeypatch.setattr(httpx, "post", post)
+
+    Gemini("clave", "m", 1).generar_json("lee el horario", None, {}, imagen=Imagen("image/png", "QUJD"))
+
+    assert enviado["contents"][0]["parts"] == [{"inlineData": {"mimeType": "image/png", "data": "QUJD"}}]
+    assert enviado["systemInstruction"]["parts"][0]["text"] == "lee el horario"

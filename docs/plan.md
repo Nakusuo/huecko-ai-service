@@ -46,3 +46,17 @@ Votación:
 5. **Retrasos esperados**: el servicio, el backend y la vista en el detalle del plan.
 6. **Ranking de ventanas y predicción del cierre**: el servicio, el backend y las marcas en la votación de ventanas.
 7. **Duración del plan**: el servicio, el backend y una sugerencia al crear el plan.
+
+## Funciones traídas de la app móvil (HueckoApp)
+
+La app Android del curso ya tiene un asistente con IA. Se traen a la web en
+este orden, cada una con su rama:
+
+8. **Escaneo del horario con foto**: `/v1/horario/escaneo` lee la imagen con
+   Gemini; el backend la valida y la reenvía, y el frontend muestra los bloques
+   para revisarlos antes de guardar. Si la IA no responde, el frontend usa su
+   lector local (Tesseract).
+9. **Borrador de plan desde una frase**: título, lugar, hasta 3 franjas reales
+   del grupo y plazo de votación.
+10. **Ideas de plan**: 3 propuestas para los huecos libres del grupo.
+11. **Resumen de la votación**: cómo va y qué conviene hacer, sin cambiar nada.
