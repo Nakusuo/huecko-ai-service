@@ -10,9 +10,11 @@ class LlmFalso:
         self.respuesta = respuesta
         self.error = error
         self.llamadas = []
+        self.imagenes = []
 
-    def generar_json(self, instrucciones, datos, esquema):
+    def generar_json(self, instrucciones, datos, esquema, imagen=None):
         self.llamadas.append((instrucciones, datos))
+        self.imagenes.append(imagen)
         if self.error:
             raise self.error
         return self.respuesta

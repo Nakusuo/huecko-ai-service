@@ -10,12 +10,20 @@ import secrets
 from fastapi import Header, HTTPException
 
 
-def exigir_token(x_huecko_token: str | None = Header(default=None)) -> None:
+def token_valido(recibido: str | bytes | None) -> bool:
+    """Si `recibido` es el secreto compartido. Sin secreto configurado, nada lo es."""
     esperado = os.getenv("HUECKO_IA_TOKEN")
-    if not esperado:
-        raise HTTPException(503, "El servicio no tiene HUECKO_IA_TOKEN configurado")
+    if not esperado or not recibido:
+        return False
     # En bytes: con `str`, compare_digest lanza TypeError si la cabecera trae
     # algo que no sea ASCII, y eso acababa en un 500 en vez de un 401.
-    if not x_huecko_token or not secrets.compare_digest(
-            x_huecko_token.encode(), esperado.encode()):
+    if isinstance(recibido, str):
+        recibido = recibido.encode()
+    return secrets.compare_digest(recibido, esperado.encode())
+
+
+def exigir_token(x_huecko_token: str | None = Header(default=None)) -> None:
+    if not os.getenv("HUECKO_IA_TOKEN"):
+        raise HTTPException(503, "El servicio no tiene HUECKO_IA_TOKEN configurado")
+    if not token_valido(x_huecko_token):
         raise HTTPException(401, "Token inválido")
