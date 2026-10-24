@@ -1,4 +1,5 @@
 """Lo común a todo endpoint que pregunta al modelo: caché, llamada y validación."""
+import hashlib
 import re
 import threading
 from typing import TypeVar
@@ -6,7 +7,7 @@ from typing import TypeVar
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ValidationError
 
-from app.llm import ErrorDelModelo, Gemini
+from app.llm import ErrorDelModelo, Gemini, Imagen
 
 TAMANO_CACHE = 512
 _CERROJO = threading.Lock()
@@ -15,20 +16,25 @@ R = TypeVar("R", bound=BaseModel)
 
 
 def consultar(request: Request, llm: Gemini, peticion: BaseModel, instrucciones: str,
-              esquema: dict, tipo: type[R]) -> R:
+              esquema: dict, tipo: type[R], imagen: Imagen | None = None) -> R:
     """Pregunta al modelo y valida la respuesta contra `tipo`.
 
     La misma petición devuelve lo mismo sin volver a llamar: el grupo no debe
     ver cambiar un veredicto por recargar, y se ahorra cuota gratuita.
+
+    Con `imagen`, la foto es todo el caso: viaja como imagen y no se repite
+    en base64 dentro del texto.
     """
     cache: dict = request.app.state.cache
-    clave = (request.url.path, peticion.model_dump_json())
+    # La huella y no el JSON entero: con una foto, cada clave pesaba megas.
+    clave = (request.url.path, hashlib.sha256(peticion.model_dump_json().encode()).hexdigest())
     with _CERROJO:
         if clave in cache:
             return cache[clave]
 
     try:
-        resultado = tipo.model_validate(llm.generar_json(instrucciones, peticion.model_dump(), esquema))
+        datos = None if imagen else peticion.model_dump()
+        resultado = tipo.model_validate(llm.generar_json(instrucciones, datos, esquema, imagen=imagen))
     except ErrorDelModelo as ex:
         raise HTTPException(503 if ex.sin_clave else 502, str(ex)) from ex
     except ValidationError as ex:
