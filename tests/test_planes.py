@@ -163,3 +163,49 @@ def test_ideas_sin_clave_responde_503():
     llm = LlmFalso(error=ErrorDelModelo("sin clave", sin_clave=True))
 
     assert cliente_con(llm).post(RUTA_IDEAS, json=PETICION_IDEAS).status_code == 503
+
+
+RUTA_RESUMEN = "/v1/planes/resumen"
+
+PETICION_RESUMEN = {
+    "titulo": "Repaso de Cálculo",
+    "lugar": "Biblioteca",
+    "estado": "EN_VOTACION",
+    "votacionAbierta": True,
+    "cierre": "sábado 24 de octubre, 07:00",
+    "ahora": "jueves 22 de octubre de 2026, 10:00",
+    "integrantes": 3,
+    "votantes": 2,
+    "ventanas": [{"opcion": "sábado 24/10 08:00-10:00", "votos": 2, "disponibilidad": 100, "elegida": False},
+                 {"opcion": "domingo 25/10 08:00-10:00", "votos": 0, "disponibilidad": 67, "elegida": False}],
+    "ausencias": [],
+    "retrasos": [],
+    "opciones": ["CERRAR", "ESPERAR"],
+}
+
+
+def test_resume_la_votacion():
+    llm = LlmFalso({"resumen": "Votaron 2 de 3 y el sábado va ganando.", "recomendacion": "CERRAR",
+                    "razon": "el sábado tiene todos los votos emitidos"})
+
+    respuesta = cliente_con(llm).post(RUTA_RESUMEN, json=PETICION_RESUMEN)
+
+    assert respuesta.status_code == 200
+    assert respuesta.json()["recomendacion"] == "CERRAR"
+    assert llm.llamadas[0][1]["opciones"] == ["CERRAR", "ESPERAR"]
+
+
+def test_resumen_con_recomendacion_desconocida_o_enlaces_responde_502():
+    for mala in [{"resumen": "Va bien.", "recomendacion": "CONFIRMAR", "razon": "el sábado tiene todos los votos"},
+                 {"resumen": "Mira www.estafa.example", "recomendacion": "CERRAR", "razon": "el sábado tiene todos los votos"},
+                 {"resumen": "  ", "recomendacion": "CERRAR", "razon": "el sábado tiene todos los votos"}]:
+        assert cliente_con(LlmFalso(mala)).post(RUTA_RESUMEN, json=PETICION_RESUMEN).status_code == 502, mala
+
+
+def test_resumen_rechaza_un_caso_sin_opciones_o_con_estado_raro():
+    llm = LlmFalso({"resumen": "x", "recomendacion": "CERRAR", "razon": "y"})
+    cliente = cliente_con(llm)
+
+    assert cliente.post(RUTA_RESUMEN, json={**PETICION_RESUMEN, "opciones": []}).status_code == 422
+    assert cliente.post(RUTA_RESUMEN, json={**PETICION_RESUMEN, "estado": "CANCELADO"}).status_code == 422
+    assert llm.llamadas == []
