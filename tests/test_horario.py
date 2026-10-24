@@ -3,7 +3,7 @@ import base64
 from fastapi.testclient import TestClient
 
 from app.horario import MAX_BLOQUES, RUTA
-from app.llm import ErrorDelModelo, obtener_llm_imagen
+from app.llm import ErrorDelModelo, obtener_llm_asistente
 from app.main import crear_app
 from tests.conftest import TOKEN
 from tests.test_criticidad import LlmFalso
@@ -18,7 +18,7 @@ def foto(contenido: bytes = PNG, tipo: str = "image/png") -> dict:
 
 def cliente_con(llm):
     app = crear_app()
-    app.dependency_overrides[obtener_llm_imagen] = lambda: llm
+    app.dependency_overrides[obtener_llm_asistente] = lambda: llm
     return TestClient(app, headers={"X-Huecko-Token": TOKEN})
 
 

@@ -79,15 +79,15 @@ def obtener_llm() -> Gemini:
     )
 
 
-def obtener_llm_imagen() -> Gemini:
-    """El mismo modelo, con más espera: leer una foto tarda bastante más que juzgar una frase.
+def obtener_llm_asistente() -> Gemini:
+    """El mismo modelo, con más espera, para lo que pide la persona (leer una foto, redactar un plan).
 
-    La persona está mirando una barra de progreso y no hay plan B instantáneo
-    (el lector del navegador es mucho peor), así que aquí se espera más que en
-    las funciones que tienen reglas de respaldo.
+    Ahí alguien está mirando un «Pensando…» y no hay reglas de respaldo que
+    den lo mismo, así que se espera más que en la criticidad, donde el
+    backend prefiere sus reglas a hacer esperar a nadie.
     """
     return Gemini(
         clave=os.getenv("GEMINI_API_KEY"),
         modelo=os.getenv("GEMINI_MODELO", "gemini-flash-latest"),
-        tiempo_maximo=float(os.getenv("GEMINI_TIEMPO_MAXIMO_IMAGEN", "25")),
+        tiempo_maximo=float(os.getenv("GEMINI_TIEMPO_MAXIMO_ASISTENTE", "25")),
     )

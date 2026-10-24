@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
 from app.consulta import consultar
-from app.llm import Gemini, Imagen, obtener_llm_imagen
+from app.llm import Gemini, Imagen, obtener_llm_asistente
 from app.token import exigir_token
 
 router = APIRouter(dependencies=[Depends(exigir_token)])
@@ -167,6 +167,6 @@ class LecturaHorario(BaseModel):
 
 
 @router.post(RUTA, response_model=LecturaHorario)
-def escanear(peticion: PeticionEscaneo, request: Request, llm: Gemini = Depends(obtener_llm_imagen)):
+def escanear(peticion: PeticionEscaneo, request: Request, llm: Gemini = Depends(obtener_llm_asistente)):
     return consultar(request, llm, peticion, PROMPT, ESQUEMA, LecturaHorario,
                      imagen=Imagen(peticion.tipo, peticion.imagen))

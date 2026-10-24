@@ -8,7 +8,7 @@ import os
 
 from fastapi import FastAPI
 
-from app import criticidad, horario, recomendacion
+from app import criticidad, horario, planes, recomendacion
 from app.limite import LimiteDeCuerpo
 
 VERSION = "0.6.0"
@@ -30,6 +30,7 @@ def crear_app() -> FastAPI:
     app.include_router(criticidad.router)
     app.include_router(recomendacion.router)
     app.include_router(horario.router)
+    app.include_router(planes.router)
 
     @app.get("/salud")
     def salud() -> dict:
