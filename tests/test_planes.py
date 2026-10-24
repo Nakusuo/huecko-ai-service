@@ -111,3 +111,55 @@ def test_un_texto_que_intenta_dar_ordenes_va_como_dato():
     instrucciones, datos = llm.llamadas[0]
     assert trampa not in instrucciones
     assert datos["texto"] == trampa
+
+
+RUTA_IDEAS = "/v1/planes/ideas"
+
+PETICION_IDEAS = {
+    "grupo": "Proyecto Integrador",
+    "descripcion": "Curso de Desarrollo Full Stack",
+    "integrantes": 3,
+    "ahora": "jueves 23 de octubre de 2026, 18:55",
+    "planesRecientes": ["Repaso de Cálculo"],
+    "huecos": HUECOS,
+}
+
+
+def idea(titulo="Almuerzo del grupo", numero=1, razon="el viernes al mediodía están todos libres"):
+    return {"titulo": titulo, "categoria": "COMIDA", "lugar": "Cafetería", "numero": numero, "razon": razon}
+
+
+def test_devuelve_hasta_tres_ideas():
+    llm = LlmFalso({"ideas": [idea(f"Idea {i}") for i in range(5)]})
+
+    respuesta = cliente_con(llm).post(RUTA_IDEAS, json=PETICION_IDEAS)
+
+    assert respuesta.status_code == 200
+    assert [i["titulo"] for i in respuesta.json()["ideas"]] == ["Idea 0", "Idea 1", "Idea 2"]
+    assert llm.llamadas[0][1]["planesRecientes"] == ["Repaso de Cálculo"]
+
+
+def test_descarta_las_ideas_malas_y_corrige_lo_accesorio():
+    llm = LlmFalso({"ideas": [
+        idea(razon="mira http://estafa.example"),     # enlace en la razón
+        idea(titulo="   "),                           # sin título
+        "no soy una idea",
+        {**idea("Partido de fulbito"), "categoria": "FUTBOL", "numero": "dos", "lugar": ""},
+    ]})
+
+    ideas = cliente_con(llm).post(RUTA_IDEAS, json=PETICION_IDEAS).json()["ideas"]
+
+    assert ideas == [{"titulo": "Partido de fulbito", "categoria": "OTRO", "lugar": None, "numero": None,
+                      "razon": "el viernes al mediodía están todos libres"}]
+
+
+def test_sin_ninguna_idea_valida_responde_502():
+    llm = LlmFalso({"ideas": [idea(razon="corta")]})
+
+    assert cliente_con(llm).post(RUTA_IDEAS, json=PETICION_IDEAS).status_code == 502
+
+
+def test_ideas_sin_clave_responde_503():
+    llm = LlmFalso(error=ErrorDelModelo("sin clave", sin_clave=True))
+
+    assert cliente_con(llm).post(RUTA_IDEAS, json=PETICION_IDEAS).status_code == 503
